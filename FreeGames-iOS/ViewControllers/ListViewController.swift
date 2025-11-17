@@ -41,7 +41,14 @@ class ListViewController: UIViewController, UITableViewDataSource {
                 self.tableView.reloadData()
             }
         }
-        
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let detailVC = segue.destination as! DetailViewController
+        let indexPath = tableView.indexPathForSelectedRow!
+        let game = gameList[indexPath.row]
+        detailVC.game = game
+        tableView.deselectRow(at: indexPath, animated: true)
     }
 }
 
