@@ -14,7 +14,7 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var genreLabel: UILabel!
     @IBOutlet weak var platformImageView: UIImageView!
     
-    @IBOutlet weak var descriptionTextView: UITextView!
+    @IBOutlet weak var descriptionLabel: UILabel!
     
     @IBOutlet weak var osLabel: UILabel!
     @IBOutlet weak var processorLabel: UILabel!
@@ -37,7 +37,9 @@ class DetailViewController: UIViewController {
         thumbnailImageView.loadFrom(url: game.thumbnail)
         
         titleLabel.text = game.title
-        descriptionTextView.text = game.description
+        descriptionLabel.text = game.description
+        // descriptionLabel.numberOfLines = 0
+        //descriptionLabel.sizeToFit()
         
         genreLabel.text = game.genre
         
@@ -59,6 +61,16 @@ class DetailViewController: UIViewController {
             memoryLabel.text = "-----"
             graphicsLabel.text = "-----"
             storageLabel.text = "-----"
+        }
+    }
+    
+    @IBAction func expandDescription(_ sender: UIButton) {
+        if descriptionLabel.numberOfLines == 0 {
+            descriptionLabel.numberOfLines = 5
+            sender.setImage(UIImage(systemName: "arrow.up.and.line.horizontal.and.arrow.down"), for: .normal)
+        } else {
+            descriptionLabel.numberOfLines = 0
+            sender.setImage(UIImage(systemName: "arrow.down.and.line.horizontal.and.arrow.up"), for: .normal)
         }
     }
 

@@ -13,6 +13,7 @@ class GameViewCell: UITableViewCell {
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var platformLabel: UILabel!
     @IBOutlet weak var genreLabel: UILabel!
+    @IBOutlet weak var descriptionLabel: UILabel!
     
     @IBOutlet weak var cardView: UIView!
     @IBOutlet weak var shadowView: UIView!
@@ -42,5 +43,6 @@ class GameViewCell: UITableViewCell {
         platformLabel.text = game.platform
         genreLabel.text = game.genre
         thumbnailImageView.loadFrom(url: game.thumbnail)
+        descriptionLabel.text = game.descriptionShort
     }
 }
