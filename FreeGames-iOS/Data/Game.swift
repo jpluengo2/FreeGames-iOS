@@ -20,7 +20,7 @@ struct Game: Codable {
     let profileUrl: String
     let gameUrl: String
     let minSystemRequirements: MinimumSystemRequirements?
-    let screenshots: [Screenshot]?
+    var screenshots: [Screenshot]?
     
     enum CodingKeys: String, CodingKey {
         case descriptionShort = "short_description"

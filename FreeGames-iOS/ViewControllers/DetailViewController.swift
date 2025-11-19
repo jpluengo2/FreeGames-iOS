@@ -6,8 +6,14 @@
 //
 
 import UIKit
+import AVKit
+//import AVFoundation
 
-class DetailViewController: UIViewController {
+class DetailViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+    
+    // MARK: Outlets
+    
+    @IBOutlet weak var videoPlayerView: UIView!
     
     @IBOutlet weak var thumbnailImageView: UIImageView!
     @IBOutlet weak var titleLabel: UILabel!
@@ -22,7 +28,13 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var graphicsLabel: UILabel!
     @IBOutlet weak var storageLabel: UILabel!
     
+    @IBOutlet weak var screenshotsCollectionView: UICollectionView!
+    
+    // MARK: Properties
+    
     var game: Game!
+    
+    // MARK: Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,7 +42,91 @@ class DetailViewController: UIViewController {
         // Do any additional setup after loading the view.
         navigationItem.title = game.title
         
+        //screenshotsCollectionView.dataSource = self
+        //screenshotsCollectionView.delegate = self
+        
         getGameById()
+        
+        //playVideo()
+        videoPlayerView.isHidden = true
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        videoPlayerView.layer.sublayers?.first?.frame = videoPlayerView.bounds
+    }
+    
+    // MARK: CollectionView DataSource
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return game.screenshots?.count ?? 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = screenshotsCollectionView.dequeueReusableCell(withReuseIdentifier: "Screenshot Cell", for: indexPath) as! ScreenshotViewCell
+        cell.render(url: game.screenshots![indexPath.row].image)
+        return cell
+    }
+    
+    // MARK: CollectionView Delegate
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let screenshot = game.screenshots![indexPath.row]
+        thumbnailImageView.loadFrom(url: screenshot.image)
+    }
+    
+    // MARK: VideoPlayer
+    
+    func playVideo() {
+        let url = URL(string: "https://www.freetogame.com/g/\(game.id)/videoplayback.webm")!
+        let player = AVPlayer(url: url)
+
+        let playerLayer = AVPlayerLayer(player: player)
+        playerLayer.frame = videoPlayerView.bounds
+        playerLayer.videoGravity = .resizeAspectFill
+
+        videoPlayerView.layer.addSublayer(playerLayer)
+        player.play()
+    }
+    
+    // MARK: Actions
+    
+    @IBAction func expandDescription(_ sender: UIButton) {
+        if descriptionLabel.numberOfLines == 0 {
+            descriptionLabel.numberOfLines = 5
+            sender.setImage(UIImage(systemName: "arrow.up.and.line.horizontal.and.arrow.down"), for: .normal)
+        } else {
+            descriptionLabel.numberOfLines = 0
+            sender.setImage(UIImage(systemName: "arrow.down.and.line.horizontal.and.arrow.up"), for: .normal)
+        }
+    }
+    
+    @IBAction func shareContent(_ sender: Any) {
+        let text = "Check out this game: \(game.title) - \(game.profileUrl)"
+        let textToShare = [ text ]
+        let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
+        
+        activityViewController.popoverPresentationController?.sourceView = self.view // so that iPads won't crash
+        
+        self.present(activityViewController, animated: true, completion: nil)
+    }
+    
+    @IBAction func playNow(_ sender: Any) {
+        if let url = URL(string: game.gameUrl) {
+            UIApplication.shared.open(url)
+        }
+    }
+    
+    // MARK: Buisness Logic
+    
+    func getGameById() {
+        Task {
+            game = await ServiceApi().getGameById(id: game.id)
+            
+            DispatchQueue.main.async {
+                self.loadData()
+            }
+        }
     }
     
     func loadData() {
@@ -62,25 +158,10 @@ class DetailViewController: UIViewController {
             graphicsLabel.text = "-----"
             storageLabel.text = "-----"
         }
-    }
-    
-    @IBAction func expandDescription(_ sender: UIButton) {
-        if descriptionLabel.numberOfLines == 0 {
-            descriptionLabel.numberOfLines = 5
-            sender.setImage(UIImage(systemName: "arrow.up.and.line.horizontal.and.arrow.down"), for: .normal)
-        } else {
-            descriptionLabel.numberOfLines = 0
-            sender.setImage(UIImage(systemName: "arrow.down.and.line.horizontal.and.arrow.up"), for: .normal)
-        }
-    }
-
-    func getGameById() {
-        Task {
-            game = await ServiceApi().getGameById(id: game.id)
-            
-            DispatchQueue.main.async {
-                self.loadData()
-            }
-        }
+        
+        let screenshot = Screenshot(image: game.thumbnail)
+        game.screenshots?.insert(screenshot, at: 0)
+        
+        screenshotsCollectionView.reloadData()
     }
 }
